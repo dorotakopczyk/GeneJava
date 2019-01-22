@@ -16,6 +16,8 @@ public class HeyWorld {
         		outputFileLocation);
         
         geneAnalyzer.GetMyRegions();
+        
+        System.out.println("Completed. Please find output at " + outputFileLocation);
 	}
 
 }

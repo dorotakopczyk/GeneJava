@@ -1,4 +1,3 @@
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,7 +24,7 @@ public class GeneAnalyzer {
     int _searchSpace;
     String _outputFileLocation;
 
-    List <Region> _resultSet;
+    List<Region> _resultSet;
 
     public GeneAnalyzer(double indexPvalueThreshold, double suggestivePvalueThreshold, String inputFileLocation, int searchSpace, String outputFileLocation) {
         _indexPvalueThreshold = indexPvalueThreshold;
@@ -40,9 +39,13 @@ public class GeneAnalyzer {
     public List<Region> GetMyRegions() {
     	
     	List<String> dataset = null;
-    	try (Stream<String> lines = Files.lines(_inputFileLocation)) {
+    	try (Stream<String> lines = Files.lines(_inputFileLocation)) 
+    	{
+    		System.out.println("Found file and loading...");
     	    dataset  = lines.collect(Collectors.toList());
-    	} catch (Exception e) {
+    	} 
+    	catch (Exception e) {
+    		System.out.println(e);
     	}
     	
     	dataset.remove(0); 
@@ -305,11 +308,12 @@ public class GeneAnalyzer {
                  * exception when p-value is NA
                  */
             	
-            	record.Pvalue = Double.parseDouble(wordsArray[3]);
+            	record.setPvalue(Double.parseDouble(wordsArray[wordsArray.length-1]));
                 filedata.add(record);
 
              }
-             catch (IllegalFormatException e) { 
+             catch (NumberFormatException e) { 
+            	System.out.println(String.join("\t", wordsArray));
                 System.out.println("Could not parse pvalue for " + wordsArray[3]);
              }
 		}

@@ -10,7 +10,6 @@ public class Region {
     public int NumSigMarkers;
     public int NumSuggestiveMarkers;
     public int NumTotalMarkers;
-
     
     public int SizeOfRegion;
 
