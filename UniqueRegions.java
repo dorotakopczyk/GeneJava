@@ -1,5 +1,5 @@
 
-public class HeyWorld {
+public class UniqueRegions {
 
 	// java UniqueRegions input.txt output.txt 0.00001 0.0001 500000
 	public static void main(String[] args) {
