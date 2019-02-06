@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.IllegalFormatException;
@@ -43,12 +44,14 @@ public class GeneAnalyzer {
     	{
     		System.out.println("Found file and loading...");
     	    dataset  = lines.collect(Collectors.toList());
+    	    System.out.println("Dataset: " + dataset.get(0));
     	} 
     	catch (Exception e) {
     		System.out.println(e);
     	}
     	
     	dataset.remove(0); 
+ 
     	
     	var markers = TransformInputFileToListOfObjects(dataset);
     	
@@ -59,6 +62,17 @@ public class GeneAnalyzer {
                 .stream()
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
+    	
+    	Comparator<List<Marker>> comparator = (list1, list2) -> {
+    	       
+    		    var chrom1 = Integer.valueOf(list1.get(0).Chromosome);
+    		    var chrom2 = Integer.valueOf(list2.get(0).Chromosome);
+    		    System.out.println("chrom1: " + chrom1 + " chrom2: "+ chrom2);
+    		    return chrom1.compareTo(chrom2);     
+    	};
+    	
+    	chromosomeSets.sort(comparator);
+    	chromosomeSets.forEach(x -> System.out.println(x.get(0).Chromosome));
     	
     	// All the work is done for a set of chromosomes,
         // where first the chromosomes are in order and then so are positions. (genomic order)
@@ -307,7 +321,7 @@ public class GeneAnalyzer {
                 /* We suspect that this block of statement can throw 
                  * exception when p-value is NA
                  */
-            	
+                Integer.parseInt(record.Chromosome);
             	record.setPvalue(Double.parseDouble(wordsArray[wordsArray.length-1]));
                 filedata.add(record);
 
@@ -318,7 +332,10 @@ public class GeneAnalyzer {
              }
 		}
 		
-		return filedata; 
+    	var cleaned = filedata.stream().filter(x -> !x.Chromosome.isEmpty()).toArray(Marker[]::new);
+    	var noBlanks = Arrays.asList(cleaned);
+    	
+		return noBlanks; 
 	}
 
 
