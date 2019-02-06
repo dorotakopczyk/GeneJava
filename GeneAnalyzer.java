@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.IllegalFormatException;
 
 
 public class GeneAnalyzer {
@@ -43,7 +42,6 @@ public class GeneAnalyzer {
     	try (Stream<String> lines = Files.lines(_inputFileLocation)) 
     	{
     		System.out.println("Found file and loading...");
-    	    dataset  = lines.collect(Collectors.toList());
     	    System.out.println("Dataset: " + dataset.get(0));
     	} 
     	catch (Exception e) {
