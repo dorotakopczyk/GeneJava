@@ -164,21 +164,6 @@ public class GeneAnalyzer {
 			
 			var region = chromosomeSet.stream().filter(x -> x.Pvalue < _suggestivePvalueThreshold).collect(Collectors.toList());
 			
-			/*
-			 * 
-       	newRegion.setRegionStart(region.get(0).Position);
-       	newRegion.setRegionStop(region.get(region.size() - 1).Position);
-       	newRegion.setNumSigMarkers(region.stream()
-       								.filter(p -> p.getPvalue() <= _indexPvalueThreshold)
-       								.collect(Collectors.toList()).size());
-       	newRegion.setNumSuggestiveMarkers(region.stream()
-       								.filter(p -> p.getPvalue() <= _suggestivePvalueThreshold)
-       								.collect(Collectors.toList()).size());
-       	
-    	newRegion.setNumTotalMarkers(region.size());
-
-    	newRegion.setSizeOfRegion();
-			 */
 			regionNeedingFixup.NumSigMarkers = region.stream()
 						.filter(p -> p.getPvalue() <= _indexPvalueThreshold)
 						.collect(Collectors.toList()).size();
@@ -263,8 +248,6 @@ public class GeneAnalyzer {
 		
     	// We will define the start and stop positions of the region as the positions of the first and last marker
         // in the region that meet the SUGGESTIVE THRESHOLD. 
-        // TODO: I was not 100% if that caps locked above meant that the region was also defined as ONLY markers that met the suggestive threshold
-
     	var region = chromosomeSet.stream().filter(x -> x.getPvalue() < _suggestivePvalueThreshold)
     			.collect(Collectors.toList());
     	
@@ -394,8 +377,4 @@ public class GeneAnalyzer {
     	
 		return noBlanks; 
 	}
-
-
-  
-
 }
