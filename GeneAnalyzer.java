@@ -238,7 +238,7 @@ public class GeneAnalyzer {
        								.collect(Collectors.toList()).size());
        	newRegion.setNumSuggestiveMarkers(region.stream()
        								.filter(p -> p.getPvalue() < _suggestivePvalueThreshold)
-       								.collect(Collectors.toList()).size());
+       								.collect(Collectors.toList()).size() + 1);
        	
     	newRegion.setNumTotalMarkers(region.size());
 
