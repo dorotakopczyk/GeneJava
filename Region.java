@@ -14,7 +14,7 @@ public class Region {
     public int SizeOfRegion;
 
     public void setSizeOfRegion() {
-    	this.SizeOfRegion = this.RegionStop - this.RegionStart; 
+    	this.SizeOfRegion = this.RegionStop - this.RegionStart + 1; 
     }
     
     public int getSizeOfRegion() {

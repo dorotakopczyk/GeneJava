@@ -42,7 +42,7 @@ public class GeneAnalyzer {
     	try (Stream<String> lines = Files.lines(_inputFileLocation)) 
     	{
     		System.out.println("Found file and loading...");
-    	    System.out.println("Dataset: " + dataset.get(0));
+    		dataset  = lines.collect(Collectors.toList());
     	} 
     	catch (Exception e) {
     		System.out.println(e);
@@ -65,12 +65,10 @@ public class GeneAnalyzer {
     	       
     		    var chrom1 = Integer.valueOf(list1.get(0).Chromosome);
     		    var chrom2 = Integer.valueOf(list2.get(0).Chromosome);
-    		    System.out.println("chrom1: " + chrom1 + " chrom2: "+ chrom2);
     		    return chrom1.compareTo(chrom2);     
     	};
     	
     	chromosomeSets.sort(comparator);
-    	chromosomeSets.forEach(x -> System.out.println(x.get(0).Chromosome));
     	
     	// All the work is done for a set of chromosomes,
         // where first the chromosomes are in order and then so are positions. (genomic order)
@@ -115,11 +113,14 @@ public class GeneAnalyzer {
                             // We will define the start and stop positions of the region as the positions of the first and last marker
                             // in the region that meet the SUGGESTIVE THRESHOLD.
                             var newRegion = BuildRegion(_resultSet, expandedResults, regionCandidate);
-                            
-                            if (IsDistinct(newRegion))
+                
+                            if (IsNewMarker(newRegion.MarkerName) && !OverlapsWithPreviousRegion(newRegion))
                             {
                                 newRegion.setRegionIndex(_resultSet.size() + 1);
                                 _resultSet.add(newRegion);
+                            }
+                            else {
+                            	FixUpRegion(newRegion, expandedResults);
                             }
                     	}
                     }
@@ -138,6 +139,86 @@ public class GeneAnalyzer {
         
         return _resultSet;
         
+    }
+    
+    private void FixUpRegion(Region newRegion, List<Marker> chromosomeSet) {
+    	 List<Region> regionsNeedingFixup = _resultSet.stream().filter(x -> (newRegion.RegionStart - x.RegionStart) < _searchSpace &&
+                 (newRegion.RegionStart - x.RegionStart) >= 0 &&
+                 x.Chr == newRegion.Chr).collect(Collectors.toList());
+
+			if (regionsNeedingFixup.size() == 0)
+			{
+			return;
+			}
+			
+			Region regionNeedingFixup = regionsNeedingFixup.get(0);
+			
+			if (regionNeedingFixup.RegionStart > newRegion.RegionStart)
+			{
+			regionNeedingFixup.RegionStart = newRegion.RegionStart;
+			}
+			if (regionNeedingFixup.RegionStop < newRegion.RegionStop)
+			{
+			regionNeedingFixup.RegionStop = newRegion.RegionStop;
+			}
+			
+			var region = chromosomeSet.stream().filter(x -> x.Pvalue < _suggestivePvalueThreshold).collect(Collectors.toList());
+			
+			/*
+			 * 
+       	newRegion.setRegionStart(region.get(0).Position);
+       	newRegion.setRegionStop(region.get(region.size() - 1).Position);
+       	newRegion.setNumSigMarkers(region.stream()
+       								.filter(p -> p.getPvalue() <= _indexPvalueThreshold)
+       								.collect(Collectors.toList()).size());
+       	newRegion.setNumSuggestiveMarkers(region.stream()
+       								.filter(p -> p.getPvalue() <= _suggestivePvalueThreshold)
+       								.collect(Collectors.toList()).size());
+       	
+    	newRegion.setNumTotalMarkers(region.size());
+
+    	newRegion.setSizeOfRegion();
+			 */
+			regionNeedingFixup.NumSigMarkers = region.stream()
+						.filter(p -> p.getPvalue() <= _indexPvalueThreshold)
+						.collect(Collectors.toList()).size();
+			
+			regionNeedingFixup.NumSuggestiveMarkers = region.stream()
+						.filter(p -> p.getPvalue() <= _suggestivePvalueThreshold)
+						.collect(Collectors.toList()).size();
+			
+			regionNeedingFixup.NumTotalMarkers = chromosomeSet.stream().filter(x -> x.Position >= regionNeedingFixup.RegionStart 
+					&& x.Position <= regionNeedingFixup.RegionStop).collect(Collectors.toList()).size();
+			regionNeedingFixup.SizeOfRegion = regionNeedingFixup.RegionStop - regionNeedingFixup.RegionStart + 1;
+		
+	}
+
+	private boolean IsNewMarker(String newRegionMarkerName)
+    {
+        if (_resultSet.stream().filter(x -> x.MarkerName == newRegionMarkerName).collect(Collectors.toList()).size() > 0)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    
+    private boolean OverlapsWithPreviousRegion(Region newRegion)
+    {
+        if (_resultSet.size() < 1)
+        {
+            return false;
+        }
+        
+        var index = _resultSet.size();
+        var previousRegion = _resultSet.get(index - 1);
+        if ((newRegion.RegionStart - previousRegion.getRegionStart() < 500000) 
+        		&& (newRegion.RegionStart - previousRegion.RegionStart > 0))
+        {
+            return true;
+        }
+        return false; 
     }
     
     private void BuildResultFile(String fileLocation)throws IOException {
@@ -176,28 +257,7 @@ public class GeneAnalyzer {
     	bw.close();
     }
 
-	private boolean IsDistinct(Region newRegion) {
-		// TODO Auto-generated method stub
-    	 var dupe = _resultSet.stream().filter(x -> x.Pvalue == newRegion.Pvalue && 
-                 x.Chr == newRegion.Chr &&
-                 x.MarkerName == newRegion.MarkerName &&
-                 x.NumSigMarkers == newRegion.NumSigMarkers &&
-                 x.NumSuggestiveMarkers == newRegion.NumSuggestiveMarkers &&
-                 x.NumTotalMarkers == newRegion.NumTotalMarkers &&
-                 x.SizeOfRegion == newRegion.SizeOfRegion &&
-                 x.RegionStart == newRegion.RegionStart &&
-                 x.RegionStop == newRegion.RegionStop)
-    			 .collect(Collectors.toList());
 
-		if (dupe.size() > 0)
-		{
-		return false;
-		}
-		else
-		{
-		return true;
-		}
-	}
 
 	private Region BuildRegion( List<Region> resultSet, List<Marker> chromosomeSet, Marker regionCandidate) {
 		
@@ -234,11 +294,11 @@ public class GeneAnalyzer {
        	newRegion.setRegionStart(region.get(0).Position);
        	newRegion.setRegionStop(region.get(region.size() - 1).Position);
        	newRegion.setNumSigMarkers(region.stream()
-       								.filter(p -> p.getPvalue() < _indexPvalueThreshold)
+       								.filter(p -> p.getPvalue() <= _indexPvalueThreshold)
        								.collect(Collectors.toList()).size());
        	newRegion.setNumSuggestiveMarkers(region.stream()
-       								.filter(p -> p.getPvalue() < _suggestivePvalueThreshold)
-       								.collect(Collectors.toList()).size() + 1);
+       								.filter(p -> p.getPvalue() <= _suggestivePvalueThreshold)
+       								.collect(Collectors.toList()).size());
        	
     	newRegion.setNumTotalMarkers(region.size());
 
@@ -325,7 +385,6 @@ public class GeneAnalyzer {
 
              }
              catch (NumberFormatException e) { 
-            	System.out.println(String.join("\t", wordsArray));
                 System.out.println("Could not parse pvalue for " + wordsArray[3]);
              }
 		}
