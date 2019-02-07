@@ -9,13 +9,14 @@ public class UniqueRegions {
         var suggestivePvalueThreshold = args[3];
         var searchSpace = args[4];
         
-        var geneAnalyzer = new GeneAnalyzer(Double.parseDouble(indexPvalueThreshold), 
+        var geneAnalyzer = new RecursiveGeneAnalyzer(Double.parseDouble(indexPvalueThreshold), 
         		Double.parseDouble(suggestivePvalueThreshold), 
         		inputFileLocation, 
         		Integer.parseInt(searchSpace), 
         		outputFileLocation);
         
-        geneAnalyzer.GetMyRegions();
+        //geneAnalyzer.GetMyRegions();
+        geneAnalyzer.RunThroughDataset();
         
         System.out.println("Completed. Please find output at " + outputFileLocation);
 	}
